@@ -1,4 +1,4 @@
-# Navigator-OptiLite — Python Dependencies
+# Navigator-OptiLite - Python Dependencies
 # PyTorch installed separately via ROCm wheel in setup.sh
 # Run: pip install -r requirements.txt
 

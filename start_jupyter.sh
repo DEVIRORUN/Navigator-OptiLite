@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================
-#  Navigator-OptiLite — start_jupyter.sh
+#  Navigator-OptiLite - start_jupyter.sh
 #
 #  This script just reminds you how to connect and
 #  prints your current token.
@@ -8,7 +8,7 @@
 
 echo ""
 echo "================================================="
-echo "  Navigator-OptiLite — How to Access JupyterLab"
+echo "  Navigator-OptiLite - How to Access JupyterLab"
 echo "================================================="
 echo ""
 echo "  JupyterLab is already running on this droplet."

@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================
-#  Navigator-OptiLite — setup.sh
+#  Navigator-OptiLite - setup.sh
 #  Run ONCE after SSHing into your MI300X droplet
 #
 #  What this does:
@@ -42,7 +42,7 @@ echo "[2/4] Installing Python dependencies..."
 pip install --upgrade pip -q
 
 # PyTorch for ROCm 7.2 (gfx942 = MI300X)
-echo "  → PyTorch (ROCm 6.2.4 wheel — latest stable for MI300X)..."
+echo "  → PyTorch (ROCm 6.2.4 wheel - latest stable for MI300X)..."
 pip install torch torchvision torchaudio \
     --index-url https://download.pytorch.org/whl/rocm6.2 -q
 
