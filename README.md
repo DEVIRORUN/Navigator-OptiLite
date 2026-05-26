@@ -1,86 +1,100 @@
 # 🎯 Navigator-OptiLite
 
-Real-time object detection with semantic color coding.
-**Stack:** AMD MI300X · ROCm · YOLOv8 · Jupyter · Python
+Real-time object detection — semantic color-coded bounding boxes.
+**AMD MI300X · ROCm 7.2 · YOLOv8 · JupyterLab**
 
 ---
 
-## First-Time Droplet Setup
+## How the Droplet Works
 
+This uses DigitalOcean's **AMD GPU 1-Click** droplet.
+JupyterLab is **pre-installed and auto-starts** — you do NOT install it.
+
+```
+Droplet starts
+    → JupyterLab is already running on port 80
+    → SSH terminal shows your login Token
+    → Open http://YOUR_DROPLET_IP in browser
+    → Paste token → you're in
+```
+
+---
+
+## First-Time Setup (do once per fresh droplet)
+
+**Step 1 — SSH in via DigitalOcean web console**
+> Droplet page → top right → "Web Console"
+> Copy the Token from the welcome message
+
+**Step 2 — In the terminal:**
 ```bash
-# SSH into your droplet
-ssh root@YOUR_DROPLET_IP
-
-# Clone the repo
+cd /root
 git clone https://github.com/DEVIRORUN/Navigator-OptiLite.git
 cd Navigator-OptiLite
-
-# Run setup (takes ~5-10 mins)
-chmod +x setup.sh
 bash setup.sh
 ```
 
+**Step 3 — Open JupyterLab:**
+```
+http://YOUR_DROPLET_IP
+```
+Paste token → Enter
+
+**Step 4 — Open the notebook:**
+```
+notebooks/yolo_detection.ipynb
+```
+Run all cells → click **▶ START STREAM** → allow webcam
+
 ---
 
-## Every Time You Start the Droplet
+## Every Session After That (new droplet from scratch)
 
 ```bash
-cd /root/Navigator-OptiLite
-chmod +x start_jupyter.sh
-bash start_jupyter.sh
+# In web console terminal:
+git clone https://github.com/DEVIRORUN/Navigator-OptiLite.git
+cd Navigator-OptiLite
+bash setup.sh
 ```
-
-Then open in your browser:
-```
-http://YOUR_DROPLET_IP:8888
-```
-Password: `navigator`  ← change this in setup.sh before running!
+Then open JupyterLab as above.
+Setup takes ~5 mins. YOLO weights auto-download on first Cell 3 run.
 
 ---
 
-## Usage
-
-1. Open `notebooks/yolo_detection.ipynb`
-2. Run all cells top to bottom (Kernel → Restart & Run All)
-3. Click **▶ Start Stream** in the widget
-4. Allow webcam access in your browser
-5. YOLO detects at 3fps with custom color-coded boxes
-
----
-
-## Color System
-
-| Object | Color |
-|---|---|
-| Person / Human | 🔵 Blue |
-| Dangerous animal (bear, elephant) | 🔴 Red-900 (dark) |
-| Safe animal (dog, cat, horse...) | 🟠 Orange |
-| Door (generic) | 🟢 Green-600 |
-| Car door | 🟢 Green-300 (light) |
-| Bus door | 🟢 Green-700 |
-| House door | 🟢 Green-900 (dark) |
-| Other | ⬜ Gray |
-
----
-
-## Saving Your Work (Free — No Snapshot Needed)
+## Save Before Destroying Droplet
 
 ```bash
 cd /root/Navigator-OptiLite
 git add .
-git commit -m "checkpoint: describe what you did"
+git commit -m "checkpoint: what you did today"
 git push origin main
 ```
+Then destroy the droplet. Zero credits burned while you sleep.
 
-Then you can safely **destroy the droplet** to stop credits burning.  
-Next time: spin up a fresh MI300X, clone, run `bash setup.sh`, done.
+---
+
+## Color Legend
+
+| Class | Color | Notes |
+|---|---|---|
+| person | 🔵 Blue-500 | |
+| bear, elephant | 🔴 Red-900 | dangerous |
+| dog, cat, horse, cow, sheep, bird, giraffe, zebra | 🟠 Orange-400 | safe animals |
+| door (generic) | 🟢 Green-600 | |
+| car door | 🟢 Green-300 | lightest |
+| bus door | 🟢 Green-700 | |
+| house door | 🟢 Green-900 | darkest |
+| everything else | ⬜ Gray | |
+
+> Door subtypes (car/bus/house) require LLaVA — coming in Phase 2.
+> For now all doors detected by YOLO get Green-600.
 
 ---
 
 ## Roadmap
 
-- [x] Phase 1: YOLO + webcam + custom colors + Jupyter display
-- [ ] Phase 2: FER (facial emotion recognition) integration
-- [ ] Phase 3: LLaVA for deep semantic understanding
-- [ ] Phase 4: TTS output + full browser client on local PC
-- [ ] Phase 5: Distance estimation
+- [x] Phase 1 — YOLO + webcam + semantic colors + Jupyter display (3fps)
+- [ ] Phase 2 — FER (facial expression recognition)
+- [ ] Phase 3 — LLaVA for deep semantics (door subtypes, clothing, etc.)
+- [ ] Phase 4 — TTS output + browser client on local PC
+- [ ] Phase 5 — Distance estimation
