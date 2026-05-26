@@ -1,92 +1,93 @@
 #!/bin/bash
-# Navigator-OptiLite Setup Script
-# AMD MI300X | ROCm | PyTorch | YOLOv8 | Jupyter
-# Run this once on a fresh droplet: bash setup.sh
+# ============================================================
+#  Navigator-OptiLite — setup.sh
+#  Run ONCE after SSHing into your MI300X droplet
+#
+#  What this does:
+#  - Installs Python deps into the existing JupyterLab env
+#  - Clones the repo into the right place
+#  - Does NOT touch ROCm (already installed at 7.2)
+#  - Does NOT reinstall Jupyter (already running)
+#
+#  Usage:
+#    ssh root@YOUR_DROPLET_IP
+#    git clone https://github.com/DEVIRORUN/Navigator-OptiLite.git
+#    cd Navigator-OptiLite
+#    bash setup.sh
+# ============================================================
 
 set -e
-echo "========================================="
-echo " Navigator-OptiLite - Droplet Setup"
-echo "========================================="
 
-# --- 1. System deps ---
-echo "[1/7] Installing system dependencies..."
-apt-get update -qq
-apt-get install -y -qq \
-    git curl wget unzip \
-    python3-pip python3-venv \
-    libgl1-mesa-glx libglib2.0-0 \
-    ffmpeg libsm6 libxext6
+echo ""
+echo "================================================="
+echo "  Navigator-OptiLite Setup"
+echo "  AMD MI300X | ROCm 7.2 | YOLOv8"
+echo "================================================="
+echo ""
 
-# --- 2. ROCm check ---
-echo "[2/7] Checking ROCm..."
-if ! command -v rocm-smi &> /dev/null; then
-    echo "ROCm not found - installing ROCm 6.x..."
-    wget -q https://repo.radeon.com/amdgpu-install/6.1/ubuntu/jammy/amdgpu-install_6.1.60100-1_all.deb
-    apt-get install -y ./amdgpu-install_6.1.60100-1_all.deb
-    amdgpu-install -y --usecase=rocm --no-dkms
+# ── 1. Verify ROCm is present ───────────────────────────────
+echo "[1/4] Checking ROCm 7.2..."
+if command -v rocm-smi &> /dev/null; then
+    rocm-smi --showproductname 2>/dev/null || echo "ROCm found"
+    echo "ROCm OK ✓"
 else
-    echo "ROCm already installed: $(rocm-smi --version 2>/dev/null || echo 'found')"
+    echo "WARNING: rocm-smi not found in PATH."
+    echo "This is fine if you're running inside the pre-configured JupyterLab env."
+    echo "If YOLO can't find the GPU later, run: docker exec -it rocm /bin/bash"
 fi
+echo ""
 
-# --- 3. Python venv ---
-echo "[3/7] Creating Python virtual environment..."
-python3 -m venv /opt/navigator-env
-source /opt/navigator-env/bin/activate
-
+# ── 2. Install Python deps ──────────────────────────────────
+echo "[2/4] Installing Python dependencies..."
 pip install --upgrade pip -q
 
-# --- 4. PyTorch for ROCm ---
-echo "[4/7] Installing PyTorch (ROCm 6.0)..."
+# PyTorch for ROCm 7.2 (gfx942 = MI300X)
+echo "  → PyTorch (ROCm 6.2.4 wheel — latest stable for MI300X)..."
 pip install torch torchvision torchaudio \
-    --index-url https://download.pytorch.org/whl/rocm6.0 -q
+    --index-url https://download.pytorch.org/whl/rocm6.2 -q
 
-# --- 5. YOLO + CV deps ---
-echo "[5/7] Installing YOLOv8 and CV deps..."
+echo "  → YOLOv8 + CV stack..."
 pip install \
     ultralytics \
     opencv-python-headless \
     Pillow \
     numpy \
     ipywidgets \
-    ipython \
     -q
 
-# --- 6. Jupyter ---
-echo "[6/7] Installing Jupyter Lab..."
-pip install jupyterlab notebook -q
+echo "Python deps installed ✓"
+echo ""
 
-# --- 7. Jupyter config ---
-echo "[7/7] Configuring Jupyter..."
-jupyter notebook --generate-config -y
+# ── 3. Enable ipywidgets in JupyterLab ─────────────────────
+echo "[3/4] Enabling ipywidgets extension..."
+jupyter labextension list 2>/dev/null | grep -q "jupyter-widgets" && \
+    echo "ipywidgets already enabled ✓" || \
+    pip install jupyterlab-widgets -q && \
+    echo "ipywidgets enabled ✓"
+echo ""
 
-# Set password to 'navigator' (change this!)
+# ── 4. Pre-download YOLO model weights ─────────────────────
+echo "[4/4] Pre-downloading YOLOv8n weights..."
 python3 -c "
-from jupyter_server.auth import passwd
-print(passwd('navigator'))
-" > /tmp/jpass.txt
-
-HASHED=$(cat /tmp/jpass.txt)
-
-cat >> ~/.jupyter/jupyter_notebook_config.py << EOF
-
-c.NotebookApp.ip = '0.0.0.0'
-c.NotebookApp.port = 8888
-c.NotebookApp.open_browser = False
-c.NotebookApp.password = '$HASHED'
-c.NotebookApp.allow_origin = '*'
-c.NotebookApp.notebook_dir = '/root/navigator-optilite'
-EOF
-
-# --- Done ---
+from ultralytics import YOLO
+model = YOLO('yolov8n.pt')
+print('YOLOv8n weights ready ✓')
+"
 echo ""
-echo "========================================="
-echo " Setup complete!"
+
+# ── Done ────────────────────────────────────────────────────
+echo "================================================="
 echo ""
-echo " To start Jupyter:"
-echo "   source /opt/navigator-env/bin/activate"
-echo "   jupyter notebook"
+echo "  Setup complete!"
 echo ""
-echo " Then open in browser:"
-echo "   http://YOUR_DROPLET_IP:8888"
-echo " Password: navigator"
-echo "========================================="
+echo "  Next steps:"
+echo "  1. Go to your Droplet page → copy IPv4 address"
+echo "  2. Open http://YOUR_DROPLET_IP in browser"
+echo "  3. Paste the token from your SSH terminal"
+echo "  4. Open notebooks/yolo_detection.ipynb"
+echo "  5. Run all cells → click Start Stream"
+echo ""
+echo "  To save work before destroying droplet:"
+echo "    git add . && git commit -m 'checkpoint' && git push"
+echo ""
+echo "================================================="
